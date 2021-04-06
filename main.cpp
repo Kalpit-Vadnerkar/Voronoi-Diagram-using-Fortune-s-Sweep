@@ -221,7 +221,7 @@ int main(int argc, char const *argv[]) {
         std::cerr << "Couldn't write GPU image!\n";
         exit(1);
     }
-    cv::Mat output_s(img.rows, img.cols, CV_8UC4, (void*)r_o_img); // generate serial output image.
+    cv::Mat output_s(img.rows, img.cols, CV_8UC4, (void*)h_in_img); // generate serial output image.
     suc = cv::imwrite(reference.c_str(), output_s);
     if(!suc){
         std::cerr << "Couldn't write serial image!\n";
