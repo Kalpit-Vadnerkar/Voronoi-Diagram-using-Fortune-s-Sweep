@@ -116,16 +116,16 @@ int main(int argc, char const *argv[]) {
 
 
     switch(argc){
-        case 2:
-            infile = std::string(argv[1]);
-            outfile = "blurred_gpu.png";
-            reference = "blurred_serial.png";
-            break; 
-        case 3:
-            infile = std::string(argv[1]);
-            outfile = std::string(argv[2]);
-            reference = "blurred_serial.png";
-            break;
+        //case 2:
+          //  infile = std::string(argv[1]);
+            //outfile = "blurred_gpu.png";
+            //reference = "blurred_serial.png";
+            //break; 
+        //case 3:
+          //  infile = std::string(argv[1]);
+           // outfile = std::string(argv[2]);
+           // reference = "blurred_serial.png";
+           // break;
         case 4:
             numRows = std::atoi(argv[1]);
             numCols = std::atoi(argv[2]);
@@ -223,7 +223,7 @@ int main(int argc, char const *argv[]) {
         exit(1);
     }
     cv::Mat output_s(numRows, numCols, CV_8UC4, (void*)h_in_img); // generate serial output image.
-    suc = cv::imwrite(reference.c_str(), output_s);
+    suc = cv::imwrite("Voronoi_serial.png", output_s);
     if(!suc){
         std::cerr << "Couldn't write serial image!\n";
         exit(1);
