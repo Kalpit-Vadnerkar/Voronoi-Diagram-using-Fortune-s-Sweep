@@ -110,9 +110,9 @@ int main(int argc, char const *argv[]) {
 
     const int fWidth = 9; 
     const float fDev = 2;
-    std::int numRows; 
-    std::int numCols; 
-    std::int numSites;
+    int numRows; 
+    int numCols; 
+    int numSites;
 
 
     switch(argc){
