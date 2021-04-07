@@ -223,7 +223,7 @@ int main(int argc, char const *argv[]) {
       //  exit(1);
     //}
     cv::Mat output_s(numRows, numCols, CV_8UC4, (void*)h_in_img); // generate serial output image.
-    suc = cv::imwrite("Voronoi_serial.png", output_s);
+    bool suc = cv::imwrite("Voronoi_serial.png", output_s);
     if(!suc){
         std::cerr << "Couldn't write serial image!\n";
         exit(1);
