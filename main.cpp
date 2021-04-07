@@ -7,7 +7,7 @@
 #include <string> 
 #include <opencv2/opencv.hpp> 
 #include <cmath> 
-
+#include <math.h>
 #include "utils.h"
 #include "gaussian_kernel.h"
 #include <chrono> 
@@ -75,7 +75,7 @@ void gaussian_blur_filter(float *arr, const int f_sz, const float f_sigma=0.2){
 
 
 float calcDistance(const int x1, const int y1, const int x2, const int y2) {
-    return ((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1));
+    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2) * 1.0);
 }
 
 
@@ -110,9 +110,9 @@ int main(int argc, char const *argv[]) {
 
     const int fWidth = 9; 
     const float fDev = 2;
-    std::string infile; 
-    std::string outfile; 
-    std::string reference;
+    std::int numRows; 
+    std::int numCols; 
+    std::int numSites;
 
 
     switch(argc){
@@ -127,32 +127,32 @@ int main(int argc, char const *argv[]) {
             reference = "blurred_serial.png";
             break;
         case 4:
-            infile = std::string(argv[1]);
-            outfile = std::string(argv[2]);
-            reference = std::string(argv[3]);
+            numRows = std::atoi(argv[1]);
+            numCols = std::atoi(argv[2]);
+            numSites = std::atoi(argv[3]);
             break;
         default: 
-                std::cerr << "Usage ./gblur <in_image> <out_image> <reference_file> \n";
+                std::cerr << "Usage ./gblur <Number of Rows> <Number of Columns> <Number of Voronoi Sites> \n";
                 exit(1);
 
    }
 
     // preprocess 
-    cv::Mat img = cv::imread(infile.c_str(), cv::IMREAD_COLOR); 
-    if(img.empty()){
-        std::cerr << "Image file couldn't be read, exiting\n"; 
-        exit(1);
-    }
-    imrgba.create(img.rows, img.cols, CV_8UC4);
-    cv::cvtColor(img, imrgba, cv::COLOR_BGR2RGBA);
+    //cv::Mat img = cv::imread(infile.c_str(), cv::IMREAD_COLOR); 
+    //if(img.empty()){
+      //  std::cerr << "Image file couldn't be read, exiting\n"; 
+        //exit(1);
+    //}
+    imrgba.create(numRows, numCols, CV_8UC4);
+    //cv::cvtColor(img, imrgba, cv::COLOR_BGR2RGBA);
 
-    o_img.create(img.rows, img.cols, CV_8UC4);
-    r_img.create(img.rows, img.cols, CV_8UC4);
+    o_img.create(numRows, numCols, CV_8UC4);
+    r_img.create(numRows, numCols, CV_8UC4);
     
-    const int numRows = img.rows;
-    const int numCols = img.cols;
-    const size_t  numPixels = img.rows*img.cols;  
-    const int numSites = numPixels / 10;
+    //const int numRows = img.rows;
+    //const int numCols = img.cols;
+    const size_t  numPixels = numCols * numRows;
+    //const int numSites = numPixels / 10;
     sites = (int*)malloc(2 * numSites * sizeof(int));
     for (int i = 0; i < numSites; i++) {
         sites[i * 2] = rand() % (numCols + 1);
@@ -187,7 +187,7 @@ int main(int argc, char const *argv[]) {
     checkCudaErrors(cudaMemcpy(d_filter, h_filter, sizeof(float) * fWidth * fWidth, cudaMemcpyHostToDevice));
 
     // kernel launch code 
-    your_gauss_blur(d_in_img, d_o_img, img.rows, img.cols, d_red, d_green, d_blue, 
+    your_gauss_blur(d_in_img, d_o_img, numRows, numCols, d_red, d_green, d_blue, 
             d_red_blurred, d_green_blurred, d_blue_blurred, d_filter, fWidth);
 
 
@@ -216,13 +216,13 @@ int main(int argc, char const *argv[]) {
 
 
     // create the image with the output data 
-    cv::Mat output(img.rows, img.cols, CV_8UC4, (void*)h_o_img); // generate GPU output image.
+    cv::Mat output(numRows, numCols, CV_8UC4, (void*)h_o_img); // generate GPU output image.
     bool suc = cv::imwrite(outfile.c_str(), output);
     if(!suc){
         std::cerr << "Couldn't write GPU image!\n";
         exit(1);
     }
-    cv::Mat output_s(img.rows, img.cols, CV_8UC4, (void*)h_in_img); // generate serial output image.
+    cv::Mat output_s(numRows, numCols, CV_8UC4, (void*)h_in_img); // generate serial output image.
     suc = cv::imwrite(reference.c_str(), output_s);
     if(!suc){
         std::cerr << "Couldn't write serial image!\n";
