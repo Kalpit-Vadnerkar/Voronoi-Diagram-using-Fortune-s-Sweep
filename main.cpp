@@ -74,7 +74,7 @@ void gaussian_blur_filter(float *arr, const int f_sz, const float f_sigma=0.2){
 
 
 
-float calcDistance(const int x1, const int y1, const int x2, const int x2) {
+float calcDistance(const int x1, const int y1, const int x2, const int y2) {
     return ((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1));
 }
 
@@ -82,7 +82,7 @@ float calcDistance(const int x1, const int y1, const int x2, const int x2) {
 
 void serialVoronoi(uchar4 *imrgba, int *sites, const int numRows, const int numCols, const int numSites) {
     for (int y = 0; y < numRows; y++) {
-        for (int x = 0; x < cols; x++) {
+        for (int x = 0; x < numCols; x++) {
             float dist = 9999999;
             for (int i = 0; i < numSites; i++) {
                 if (dist < calcDistance(x, y, sites[2 * i], sites[2 * i + 1])) {
@@ -99,6 +99,7 @@ int main(int argc, char const *argv[]) {
    
     uchar4 *h_in_img, *h_o_img, *r_o_img; // pointers to the actual image input and output pointers  
     uchar4 *d_in_img, *d_o_img;
+    int* sites;
 
     unsigned char *h_red, *h_blue, *h_green; 
     unsigned char *d_red, *d_blue, *d_green;   
@@ -148,8 +149,8 @@ int main(int argc, char const *argv[]) {
     o_img.create(img.rows, img.cols, CV_8UC4);
     r_img.create(img.rows, img.cols, CV_8UC4);
     
-    const numRows = img.rows;
-    const numCols = img.cols;
+    const int numRows = img.rows;
+    const int numCols = img.cols;
     const size_t  numPixels = img.rows*img.cols;  
     const int numSites = numPixels / 10;
     sites = (int*)malloc(2 * numSites * sizeof(int));
