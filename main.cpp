@@ -216,12 +216,12 @@ int main(int argc, char const *argv[]) {
 
 
     // create the image with the output data 
-    cv::Mat output(numRows, numCols, CV_8UC4, (void*)h_o_img); // generate GPU output image.
-    bool suc = cv::imwrite(outfile.c_str(), output);
-    if(!suc){
-        std::cerr << "Couldn't write GPU image!\n";
-        exit(1);
-    }
+    //cv::Mat output(numRows, numCols, CV_8UC4, (void*)h_o_img); // generate GPU output image.
+    //bool suc = cv::imwrite(outfile.c_str(), output);
+    //if(!suc){
+     //   std::cerr << "Couldn't write GPU image!\n";
+      //  exit(1);
+    //}
     cv::Mat output_s(numRows, numCols, CV_8UC4, (void*)h_in_img); // generate serial output image.
     suc = cv::imwrite("Voronoi_serial.png", output_s);
     if(!suc){
@@ -232,7 +232,7 @@ int main(int argc, char const *argv[]) {
 
     // check if the caclulation was correct to a degree of tolerance
 
-    checkResult(reference, outfile, 1e-5);
+    //checkResult(reference, outfile, 1e-5);
 
     // free any necessary memory.
     cudaFree(d_in_img);
