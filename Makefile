@@ -8,16 +8,16 @@ CUDA_INCLUDEPATH=/usr/local/cuda/include
 
 NVCC_OPTS=-arch=sm_30 
 GCC_OPTS=-std=c++11 -g -O3 -Wall 
-CUDA_LD_FLAGS=-L -lcuda -lcudart
+CUDA_LD_FLAGS=-L /usr/local/cuda/lib64 -lcuda -lcudart
 
-final: main.o blur.o
-	g++ -o gblur main.o blur_kernels.o $(CUDA_LD_FLAGS) $(OPENCV_LD_FLAGS)
+final: main.o brute_kernel.o
+	g++ -o brute main.o brute_kernel.o $(CUDA_LD_FLAGS) $(OPENCV_LD_FLAGS)
 
-main.o:main.cpp gaussian_kernel.h utils.h 
-	g++ -c $(GCC_OPTS) -I $(CUDA_INCLUDEPATH) -I $(OPENCV_INCLUDE_PATH) main.cpp
+main.o:main.cpp brute_kernel.h utils.h 
+	g++ -c $(GCC_OPTS) -I $(CUDA_INCLUDEPATH) -I $(OPENCV_INCLUDE_PATH) main.cpp 
 
-blur.o: blur_kernels.cu gaussian_kernel.h  utils.h
-	$(NVCC) -c blur_kernels.cu $(NVCC_OPTS)
+brute_kernel.o: brute_kernel.cu brute_kernel.h utils.h
+	$(NVCC) -c brute_kernel.cu $(NVCC_OPTS)
 
 clean:
-	rm *.o gblur
+	rm *.o brute
