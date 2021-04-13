@@ -16,6 +16,8 @@ void brute_kernel(sites_t* sites, uchar4* out_pix, const int nsites, const int n
     int x = blockIdx.x*blockDim.x + threadIdx.x;
     int y = blockIdx.y*blockDim.y + threadIdx.y;
 
+//    uchar4 black = make_uchar4(0, 0, 0, 255);
+
     if (y < nrows && x < ncols)
     {
         int index = y*ncols + x;
@@ -27,19 +29,79 @@ void brute_kernel(sites_t* sites, uchar4* out_pix, const int nsites, const int n
         {
             float current_dist = calc_dist(x, sites[s].x, y, sites[s].y);
 
-            if (current_dist < min_dist)
+            /*if (current_dist == min_dist)
+            {
+                min_dist_site = -1;
+                out_pix[index] = black;
+            }*/
+            /*else*/ if (current_dist < min_dist)
             {
                 min_dist = current_dist;
                 min_dist_site = s;
             }
         }
 
-        out_pix[index] = sites[min_dist_site].color;
+        //if (min_dist_site != -1)
+        //{
+            out_pix[index] = sites[min_dist_site].color;
+    
+        //}
+        
+    }
+}
+
+__global__
+void s_brute_kernel(const sites_t* sites, uchar4* out_pix, const int nsites, const int nrows, const int ncols)
+{
+    const int shared_size = 32;
+
+    int x = blockIdx.x*blockDim.x + threadIdx.x;
+    int y = blockIdx.y*blockDim.y + threadIdx.y;
+    uchar4 my_color;
+    __shared__ sites_t s_sites[shared_size];
+
+    if (y < nrows && x < ncols)
+    {
+        int global_index = y*ncols + x;
+        int local_index = threadIdx.y*blockDim.x + threadIdx.x;
+
+        float min_dist = 99999999;
+        
+        for (int s = 0; s < nsites; s += shared_size)
+        {
+            // load sites into shared memory
+            if (local_index < shared_size && local_index+s < nsites)
+            {
+                s_sites[local_index] = sites[local_index+s];
+            }
+
+            __syncthreads();
+
+            for (int i = 0; i < shared_size; ++i)
+            {
+                // only run for valid sites
+                if (s+i >= nsites)
+                {
+                    break;
+                }
+
+                float current_dist = calc_dist(x, s_sites[i].x, y, s_sites[i].y);
+
+                if (current_dist < min_dist)
+                {
+                    min_dist = current_dist;
+                    my_color = s_sites[i].color;
+                }
+            }
+
+            __syncthreads();
+        }
+
+        out_pix[global_index] = my_color;
     }
 }
 
 // color the sites of the diagram black
-// TODO: this is stupid think of a better way
 __global__
 void color_sites(sites_t* sites, uchar4* out_pix, const int nsites, const int nrows, const int ncols)
 {
@@ -71,7 +133,7 @@ void launch_kernel(sites_t* sites, uchar4* out_pix, const int nsites, const int 
     dim3 block_dim(BLOCK,BLOCK,1);
     dim3 grid_dim((ncols-1)/BLOCK+1,(nrows-1)/BLOCK+1,1);
  
-    brute_kernel<<<grid_dim, block_dim>>>(sites, out_pix, nsites, nrows, ncols);
+    s_brute_kernel<<<grid_dim, block_dim>>>(sites, out_pix, nsites, nrows, ncols);
     cudaDeviceSynchronize();
     checkCudaErrors(cudaGetLastError());
 
