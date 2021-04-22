@@ -11,10 +11,10 @@ GCC_OPTS=-std=c++11 -g -O3 -Wall
 CUDA_LD_FLAGS=-L /usr/local/cuda/lib64 -lcuda -lcudart
 
 final: main.o parabola.o voronoi.o
-	g++ -o fortune main.o VParabola.o Voronoi.o
+	g++ -o fortune main.o VParabola.o Voronoi.o $(OPENCV_LD_FLAGS)
 
 main.o: main.cpp Voronoi.h VPoint.h 
-	g++ -c $(GCC_OPTS) main.cpp
+	g++ -c $(GCC_OPTS) -I $(OPENCV_INCLUDE_PATH) main.cpp
 
 parabola.o: VParabola.cpp VParabola.h VPoint.h
 	g++ -c $(GCC_OPTS) VParabola.cpp

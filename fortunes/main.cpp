@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <time.h>
 #include <chrono>
+#include <opencv2/opencv.hpp>
 
 #include "Voronoi.h"
 #include "VPoint.h"
@@ -11,6 +12,32 @@ vor::Voronoi * v;
 vor::Vertices * ver; // vrcholy
 vor::Vertices * dir; // smìry, kterými se pohybují
 vor::Edges * edg;	 // hrany diagramu
+
+void create_output_img(const char* name, const int nrows, const int ncols)
+{
+    cv::Mat output(nrows, ncols, CV_8UC1, cv::Scalar(255));
+
+    for (vor::Vertices::iterator i = ver->begin(); i != ver->end(); ++i)
+    {
+        cv::Point pt((*i)->x, (*i)->y);
+
+        cv::circle(output, pt, 3, cv::Scalar(0), cv::FILLED, cv::LINE_8, 0);
+    }
+
+    for (vor::Edges::iterator i = edg->begin(); i != edg->end(); ++i)
+    {
+        cv::Point pt1((*i)->start->x, (*i)->start->y);
+        cv::Point pt2((*i)->end->x, (*i)->end->y);
+
+        cv::line(output, pt1, pt2, cv::Scalar(0), 1, cv::LINE_8, 0);
+    }
+
+    if (!cv::imwrite(name, output))
+    {
+        printf("imwrite failed\n");
+        exit(0);
+    }
+}
 
 int main (int argc, char **argv) 
 {
@@ -62,5 +89,7 @@ int main (int argc, char **argv)
 			}	
 	}
     
+    create_output_img("h_fortune.png", nrows, ncols);
+
     return 0;
 }
